@@ -1,0 +1,243 @@
+# This makefile made by Makatic2
+
+
+# Makatic can't handle multiple targets, so by splitting object files into
+# two lists we hereby ditch Makatic
+
+CRObjects	=		\
+			Sources.o.crmod	\
+			Sources.o.error	\
+			Sources.o.event	\
+			Sources.o.noise	\
+			Sources.o.randputty	\
+			Sources.o.shaputty	\
+			Sources.o.syslog	\
+			Sources.o.syslogDS	\
+			Sources.o.crhdr	\
+			Sources.o.version \
+
+SHAObjects	=	Sources.o.shaputty	\
+			Sources.o.sha1hdr	\
+			Sources.o.sha	\
+			Sources.o.sha1mod	\
+			Sources.o.version \
+
+
+
+ProjectName	=	!Normal
+
+Libraries	=	C:o.Stubs OSLib:o.OSLib32	\
+
+INCLUDE		=	@.^.Sources,C:,OSLib:,OSLib:oslib.
+
+CRTarget	=	cryptrand
+CRRELEASE	=	010
+CRBASE		=	Mem:$.CR
+
+SHATarget	=	sha1
+SHARELEASE	=	002
+SHA1BASE	=	Mem:$.SHA1
+
+SENDROOT	=	theom@chiark:public-html/riscos/crypto/bin
+
+ASMFlags	=	$(ASMExtra) -Stamp -NoCache -CloseExec -Quit -throwback -pd "APCS32 SETL {TRUE}"
+ASFlags		=	$(ASMExtra) -throwback -DAPCS32
+CCFlags		=	$(CCExtra) -zM -Wn -depend !Depend -throwback -I$(INCLUDE)
+CPPFlags	=	$(CPPExtra) -depend !Depend -throwback -I$(INCLUDE)
+LinkFlags	=	$(LinkExtra) 
+CMHGFLAGS	= 
+
+ASM		=	objasm $(ASMFlags)
+AS		=	arm-riscos.2_95_2.as $(ASFlags)
+CC		=	cc -c $(CCFlags)
+CPP		=	c++ -c $(CPPFlags)
+LINK		=	link -rmf $(LinkFlags)
+CMHG		=	cmhg $(CMHGFLAGS)
+
+
+
+# Don't alter anything below this...
+
+
+VPATH = @.^
+
+.SUFFIXES:	.o .s .c .c++
+
+all:	$(CRTarget) $(SHATarget)
+
+$(CRTarget):	$(CRObjects) $(Libraries) sources
+	$(LINK) -o $@ $(CRObjects) $(Libraries)
+
+$(SHATarget):	$(SHAObjects) $(Libraries) sources
+	$(LINK) -o $@ $(SHAObjects) $(Libraries)
+
+sources:
+	cdir sources
+	cdir sources.o
+
+release:	releasebin releasesrc
+
+# rafs, please implement OS_GBPB 8, as *Copy needs it.
+releasebin:
+	changedynamicarea -spritesize 512K
+	copy ^.CryptRandom $(CRBASE) ~cf~vr
+	cdir $(CRBASE).!System
+	cdir $(CRBASE).!System.310
+	cdir $(CRBASE).!System.310.Modules
+	copy CryptRand $(CRBASE).!System.310.Modules.CryptRand ~c~vfr
+	x delete release.cryptr-$(CRRELEASE)-bin
+	copy ^.SHA1 $(SHA1BASE) ~cf~vr
+	copy sha1 $(SHA1BASE).SHA1 ~c~vfr
+	x delete ^.release.sha1-$(SHARELEASE)-bin
+	x delete ^.release.cryptr1-$(CRRELEASE)-bin
+	zip -rv9 ^.release.sha1-bin-$(SHARELEASE)/zip $(SHA1BASE)
+	zip -rv9 ^.release.cryptr-bin-$(CRRELEASE)/zip $(CRBASE)
+
+releasesrc:
+	changedynamicarea -spritesize 512K
+	copy ^.Sources mem:$.Sources ~c~vfr
+	cdir mem:$.!Normal
+	copy Makefile mem:$.!Normal.Makefile ~c~vfr
+	copy !Run mem:$.!Normal.!Run ~c~vfr
+	copy !Clean mem:$.!Normal.!Clean ~c~vfr
+	copy ^.CryptRandom.ReadMe mem:$.ReadMeCR ~c~vfr
+	copy ^.SHA1.ReadMe mem:$.ReadMeSHA ~c~vfr
+	copy ^.CryptRandom.History mem:$.HistoryCR ~c~vfr
+	copy ^.SHA1.History mem:$.HistorySHA ~c~vfr
+	zip -rv9 ^.release.cr$(CRRELEASE)sha$(SHARELEASE)-src/zip mem:$.Sources mem:$.!Normal mem:$.ReadMeCR mem:$.ReadMeSHA
+
+releasesend:	sendcrv sendshav sendsrc sendcr sendsha
+
+sendcrv:
+	pscp ^.CryptRandom.History $(SENDROOT)/cryptr-versions.txt
+
+sendshav:
+	pscp ^.SHA1.History $(SENDROOT)/sha1-versions.txt
+
+sendsrc:
+	pscp ^.Release.cr$(CRRELEASE)sha$(SHARELEASE)-src/zip $(SENDROOT)/
+
+sendcr:
+	pscp ^.Release.cryptr-bin-$(CRRELEASE)/zip $(SENDROOT)/
+
+sendsha:
+	pscp ^.Release.sha1-bin-$(SHARELEASE)/zip $(SENDROOT)/
+
+.s.o:
+	$(ASM) -from $< -to $@
+
+#.s.o:
+#	$(AS) -o $@ $<
+
+.c.o:
+	$(CC) -o $@ $<
+
+.c++.o:
+	$(CPP) -o $@ $<
+.cmhg.o:
+	$(CMHG) -o $@ $<
+
+
+# Dynamic dependencies:
+Sources.o.version:	^.Sources.c.version
+Sources.o.shaputty:	^.Sources.c.shaputty
+Sources.o.shaputty:	^.Sources.h.putty
+Sources.o.sha:	^.Sources.c.sha
+Sources.o.sha:	C:h.kernel
+Sources.o.sha:	^.Sources.h.def
+Sources.o.sha:	^.Sources.h.sysstruc
+Sources.o.sha:	^.Sources.h.vartypes
+Sources.o.sha:	^.Sources.h.putty
+Sources.o.sha1mod:	^.Sources.c.sha1mod
+Sources.o.sha1mod:	C:h.kernel
+Sources.o.sha1mod:	^.Sources.h.vartypes
+Sources.o.sha1mod:	^.Sources.h.macros
+Sources.o.sha1mod:	^.Sources.h.def
+Sources.o.sha1mod:	^.Sources.h.moddef
+Sources.o.sha1mod:	^.Sources.h.sysstruc
+Sources.o.sha1mod:	^.Sources.h.sha
+Sources.o.sha1mod:	^.Sources.h.version
+Sources.o.crmod:	^.Sources.c.crmod
+Sources.o.crmod:	C:h.kernel
+Sources.o.crmod:	OSLib:oslib.h.os
+Sources.o.crmod:	OSLib:oslib.h.types
+Sources.o.crmod:	OSLib:oslib.h.oscore32
+Sources.o.crmod:	OSLib:oslib.h.osf32
+Sources.o.crmod:	^.Sources.h.vartypes
+Sources.o.crmod:	^.Sources.h.macros
+Sources.o.crmod:	^.Sources.h.def
+Sources.o.crmod:	^.Sources.h.moddef
+Sources.o.crmod:	^.Sources.h.sysstruc
+Sources.o.crmod:	^.Sources.h.syslogif
+Sources.o.crmod:	^.Sources.h.syslogDS
+Sources.o.crmod:	C:h.kernel
+Sources.o.crmod:	^.Sources.h.event
+Sources.o.crmod:	^.Sources.h.noise
+Sources.o.crmod:	^.Sources.h.randputty
+Sources.o.crmod:	^.Sources.h.error
+Sources.o.crmod:	^.Sources.h.sha
+Sources.o.crmod:	^.Sources.h.version
+Sources.o.error:	^.Sources.c.error
+Sources.o.error:	C:h.kernel
+Sources.o.error:	^.Sources.h.def
+Sources.o.error:	^.Sources.h.macros
+Sources.o.error:	^.Sources.h.vartypes
+Sources.o.error:	^.Sources.h.sysstruc
+Sources.o.event:	^.Sources.c.event
+Sources.o.event:	C:h.kernel
+Sources.o.event:	OSLib:oslib.h.os
+Sources.o.event:	OSLib:oslib.h.types
+Sources.o.event:	OSLib:oslib.h.oscore32
+Sources.o.event:	OSLib:oslib.h.osf32
+Sources.o.event:	OSLib:oslib.h.osbyte
+Sources.o.event:	^.Sources.h.def
+Sources.o.event:	^.Sources.h.vartypes
+Sources.o.event:	^.Sources.h.macros
+Sources.o.event:	^.Sources.h.sysstruc
+Sources.o.event:	^.Sources.h.noise
+Sources.o.event:	^.Sources.h.putty
+Sources.o.event:	^.Sources.h.syslogif
+Sources.o.event:	^.Sources.h.syslogDS
+Sources.o.event:	C:h.kernel
+Sources.o.noise:	^.Sources.c.noise
+Sources.o.noise:	C:h.kernel
+Sources.o.noise:	OSLib:oslib.h.os
+Sources.o.noise:	OSLib:oslib.h.types
+Sources.o.noise:	OSLib:oslib.h.oscore32
+Sources.o.noise:	OSLib:oslib.h.osf32
+Sources.o.noise:	OSLib:oslib.h.osbyte
+Sources.o.noise:	OSLib:oslib.h.osreadsysinfo
+Sources.o.noise:	OSLib:oslib.h.wimpreadsysinfo
+Sources.o.noise:	OSLib:oslib.h.wimp
+Sources.o.noise:	OSLib:oslib.h.osspriteop
+Sources.o.noise:	OSLib:oslib.h.font
+Sources.o.noise:	OSLib:oslib.h.wimp32
+Sources.o.noise:	OSLib:oslib.h.taskmanager
+Sources.o.noise:	OSLib:oslib.h.osfscontrol
+Sources.o.noise:	OSLib:oslib.h.fileswitch
+Sources.o.noise:	OSLib:oslib.h.fileswch32
+Sources.o.noise:	OSLib:oslib.h.osfsctrl32
+Sources.o.noise:	OSLib:oslib.h.osgbpb
+Sources.o.noise:	OSLib:oslib.h.osgbpb32
+Sources.o.noise:	OSLib:oslib.h.portable
+Sources.o.noise:	OSLib:oslib.h.osword
+Sources.o.noise:	OSLib:oslib.h.osfile
+Sources.o.noise:	OSLib:oslib.h.osfind
+Sources.o.noise:	OSLib:oslib.h.osfind32
+Sources.o.noise:	OSLib:oslib.h.osargs
+Sources.o.noise:	OSLib:oslib.h.osargs32
+Sources.o.noise:	OSLib:oslib.h.fileswitch
+Sources.o.noise:	OSLib:oslib.h.osword
+Sources.o.noise:	^.Sources.h.def
+Sources.o.noise:	^.Sources.h.vartypes
+Sources.o.noise:	^.Sources.h.macros
+Sources.o.noise:	^.Sources.h.sysstruc
+Sources.o.noise:	^.Sources.h.error
+Sources.o.noise:	^.Sources.h.syslogif
+Sources.o.noise:	^.Sources.h.syslogDS
+Sources.o.noise:	C:h.kernel
+Sources.o.noise:	^.Sources.h.randputty
+Sources.o.randputty:	^.Sources.c.randputty
+Sources.o.randputty:	^.Sources.h.vartypes
+Sources.o.randputty:	^.Sources.h.putty
+Sources.o.randputty:	^.Sources.h.noise
