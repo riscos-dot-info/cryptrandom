@@ -1,0 +1,6 @@
+Prefix <Obey$Dir>
+|Set Alias$AMU make %*0
+|Makatic.Large @
+|Unset Alias$AMU
+Cdir <Obey$Dir>.Sources.o
+amu %*0
