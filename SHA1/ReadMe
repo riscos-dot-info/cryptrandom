@@ -1,0 +1,123 @@
+Readme for SHA1 module v0.02 (19 Jan 2003)
+
+What?
+-----
+SHA1 is a module for generating a SHA-1 digest of a block of data.
+
+Why?
+----
+SHA-1 can represent a large (up to 512MB in this version) block of data by a
+single 160 bit value (the digest).  It has good properties for ensuring that
+similar input data blocks produce highly different digests, and that there is
+a very small probability of returning the same digest when repeating the
+algorithm over many unknown blocks.
+
+Why would you use this?  For example, in a password system, you might want to
+check that a user's password is correct, without storing the password on disc
+so that an attacker can read it in cleartext.  A digest system enables you to
+store just the digest of the password, which is difficult to reverse engineer
+to produce the password from, yet you can simply compute the digest of input
+passwords and compare it with the stored digest to check if the password is
+correct.
+
+There are many other uses in checking whether data is valid, hashing etc.
+
+How?
+----
+A single SWI is provided:
+
+SHA1_Digest (&54fc0)
+  on entry: r0 = flags:
+                   bit 0: operate on message in place
+            r1 = pointer to message
+            r2 = length of message in bytes (max 512MBytes)
+            r3 = pointer to 20 bytes for output digest
+  on exit : preserved
+            contents of r3 are filled in
+  Interrupts enabled
+
+Computes the SHA-1 message digest of the supplied data (which is taken to be
+a whole number of bytes long).
+
+If bit 0 of r0 is clear, a copy of the message is taken to a block claimed in
+RMA, which is then used to compute the digest and freed afterwards.
+
+If bit 0 of r0 is set, the call will use the data in place, and so the buffer
+in which the message is stored must be 72 bytes longer than the length of the
+message.  The message itself will not be modified, but the space after it
+will be overwritten, possibly including any terminators not included in the
+message length.
+
+
+Where?
+------
+
+Newer versions (if any) of this software may be found at
+http://www.markettos.org.uk/
+or else by contacting the author at:
+
+email theo@markettos.org.uk
+(backup email address if that fails theom@chiark.greenend.org.uk)
+
+
+Theo Markettos
+
+
+
+
+
+
+I'd also welcome any bug reports or fixes, or any other comments.
+
+Source
+------
+
+Sources can be obtained from
+http://www.markettos.org.uk/
+
+Sources can be obtained from
+http://www.markettos.org.uk/
+
+To build them you'll need:
+Acorn C v4 or v5
+(the Makefiles are designed for Castle's 32bit C compiler, so may need
+modification otherwise)
+
+SDLS if have Acorn C v4
+http://www.excessus.demon.co.uk/acorn/ssr/
+
+Syslog (optional)
+http://www.acornsearch.com/archives/freenet.barnet.ac.uk/Acorn/freenet/j.ribbens/syslog-0.17.spk
+(note that Syslog 0.19 appears to have bugs in it which may cause problems)
+
+Makatic (optional)
+http://www.mirror.ac.uk/collections/hensa-micros/local/riscos/projects/makatic.zip
+
+OSLib
+http://ro-oslib.sourceforge.net/
+
+
+Copyright
+---------
+
+Copyright 2000 Theo Markettos
+Portions copyright Simon Tatham, Gary S. Brown and Eric Young
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including without
+limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom
+the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+SIMON TATHAM OR THEO MARKETTOS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
