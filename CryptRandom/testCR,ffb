@@ -1,0 +1,24 @@
+REM Examples of calling CryptRandom
+
+message$ = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
+DIM block% LENmessage$+72
+DIM digest% 20
+
+PRINT "Random number between 0 and 1234567 = ";FNrand(1234567)
+
+END
+
+REM FNrand(N) returns a random integer between 0 and N-1,
+REM similar to RND(N) for positive N in Basic
+
+DEFFNrand(modulus%)
+LOCAL word%
+
+word%=0
+SYS "CryptRandom_Byte" TO b%:word%=b%
+SYS "CryptRandom_Byte" TO b%:word%=word% OR b%<<8
+SYS "CryptRandom_Byte" TO b%:word%=word% OR b%<<16
+SYS "CryptRandom_Byte" TO b%:word%=word% OR b%<<24
+
+=ABS(word% MOD modulus%)
+
