@@ -1,5 +1,10 @@
 History
 -------
+0.11 ( 9 Aug 2003) If the RISC OS 5 HAL is available (or HAL26 module is loaded)
+                   ultra-light noise generation tries to call HAL_ReadCounter to                    get more entropy from the IOC's timer.  Should increase the
+                   randomness of multiple calls within a few centiseconds of
+                   each other.
+
 0.10r2 (30 Jan 03) Moved into !System directory (module unchanged)
 0.10 (19 Jan 2003) 32-bit mode compatible version
 

@@ -18,6 +18,7 @@
 #include "osargs.h"
 #include "fileswitch.h"
 #include "osword.h"
+#include "hal.h"
 
 #include "def.h"
 #include "vartypes.h"
@@ -394,7 +395,11 @@ void noise_get_ultralight(void (*add) (void *, int),void *data,uint32 size)
 #endif
 
   xos_read_monotonic_time((int *) &time);
-  add(&time,sizeof(time));
+  add(&time,sizeof(int));
 
+  /* read the microsecond (or faster) timer and add - only available
+   * with RISC OS 5 or the HAL26 module loaded */
+  if (!xhal_counter_read((int *) &time))
+    add(&time,sizeof(int));
 
 }

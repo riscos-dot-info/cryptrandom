@@ -31,7 +31,7 @@ Libraries	=	C:o.Stubs OSLib:o.OSLib32	\
 INCLUDE		=	@.^.Sources,C:,OSLib:,OSLib:oslib.
 
 CRTarget	=	cryptrand
-CRRELEASE	=	010
+CRRELEASE	=	011
 CRBASE		=	Mem:$.CR
 
 SHATarget	=	sha1
