@@ -1,0 +1,34 @@
+History
+-------
+0.10r2 (30 Jan 03) Moved into !System directory (module unchanged)
+0.10 (19 Jan 2003) 32-bit mode compatible version
+
+
+0.09 ( 3 Nov 2002) Fixed security hole in CryptRandom_Block, where if a block
+                   larger than the randomness pool was requested, only the first
+                   randomness-pool's-worth would be filled in
+
+     ( 3 Nov 2002) SECURITY ADVISORY 20021103 RECOMMENDS UPGRADE TO 0.09
+
+0.08 ( 6 Mar 2002) Added CryptRandom_Word SWI
+
+0.07 (26 Jan 2001) Added CryptRandomLicence command to display licence conditions
+
+0.06 (16 Jan 2001) Split SHA digest creation into SHA1 module
+
+0.05 ( 3 Jan 2001) Added CryptRandom_Block SWI
+
+0.04 ( 1 Jan 2001) Now saves seed on Service_Shutdown (finalisation code
+                   may not be called on normal shutdown).  Error giving
+                   wrong SWI numbers in documentation corrected.
+                   Added computation of SHA message digests.
+
+0.03 (12 Dec 2000) Fixed problem where double clicks were being lost on
+                   some machines (first click was reading second from
+                   mouse queue, and so clearing it)
+
+0.02 (12 Nov 2000) Changed seed path from Choices:CryptRand.Seed to
+                   Choices:Crypto.CryptRand.Seed to fit in with SSHProxy
+	
+0.01 ( 1 Sep 2000) First version
+
