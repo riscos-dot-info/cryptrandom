@@ -1,7 +1,18 @@
 History
 -------
+0.12 (21 Oct 2003) Based on suggestions from Justin Fletcher:
+                   Rebuilt with StubsG.  Now doesn't scan <Obey$Dir> on initialisation.
+                   Revised free space scan of <Wimp$ScrapDir> instead of <Obey$Dir>:
+                   tries 64 bit query, reverts to 32 bit if not supported.  Only does this
+                   and scans contents if <Wimp$ScrapDir> is set.
+                   
+                   Tightened up adding of noise to pool; prospective noise is zeroed before
+                   being gathered, so that if a noise gathering call fails no data from the
+                   stack is added to the pool.  See top of noise.c about the rationale
+                   behind this.
+
 0.11 ( 9 Aug 2003) If the RISC OS 5 HAL is available (or HAL26 module is loaded)
-                   ultra-light noise generation tries to call HAL_ReadCounter to                    get more entropy from the IOC's timer.  Should increase the
+                   ultra-light noise generation tries to call HAL_ReadCounter to                                   get more entropy from the IOC's timer.  Should increase the
                    randomness of multiple calls within a few centiseconds of
                    each other.
 

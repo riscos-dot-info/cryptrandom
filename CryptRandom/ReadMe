@@ -1,4 +1,4 @@
-Readme for CryptRandom module v0.10 release 2 (19 Jan 2003)
+Readme for CryptRandom module v0.12 (21 Oct 2003)
 
 What?
 -----
@@ -25,14 +25,19 @@ using a predictable random number generator like that Basic uses.
 Where?
 ------
 
-CryptRandom is supplied in a !System directory.  It can be installed by decompressing this !System, then using a !System merge tool - such as that accessible by running !Boot, or !SysMerge for RISC OS 3.1 machines.
+CryptRandom is supplied in a !System directory.  It can be installed by
+decompressing this !System, then using a !System merge tool - such as that
+accessible by running !Boot, or !SysMerge for RISC OS 3.1 machines.
 
-CryptRandom provides a service to applications that require it.  Such applications should load it in the following way:
+CryptRandom provides a service to applications that require it.  Such
+applications should load it in the following way:
 
 RMEnsure CryptRandom a.bc RMLoad System:Modules.CryptRand
 RMEnsure CryptRandom a.bc Error CryptRandom version a.bc is required
 
-where a.bc is the oldest version supporting the features the application requires (see the history file).  Note that this version should be at least that of the latest security advisory (if any). 
+where a.bc is the oldest version supporting the features the application
+requires (see the history file).  Note that this version should be at least
+that of the latest security advisory (if any). 
 
 How?
 ----
@@ -162,7 +167,7 @@ SDLS if have Acorn C v4
 http://www.excessus.demon.co.uk/acorn/ssr/
 
 Syslog (optional)
-http://www.acornsearch.com/archives/freenet.barnet.ac.uk/Acorn/freenet/j.ribbens/syslog-0.17.spk
+http://www.drobe.co.uk/archives/freenet.barnet.ac.uk/Acorn/freenet/j.ribbens/syslog-0.17.spk
 (note that Syslog 0.19 appears to have bugs in it which may cause problems)
 
 Makatic (optional)

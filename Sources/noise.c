@@ -1,3 +1,23 @@
+/* Attempt to gather randomness from various sources with which to feed
+ * the random pool.
+ *
+ * This is difficult on RISC OS' security model because it is trivial
+ * to intercept any of the calls below to directly influence the entropy
+ * added to the random pool.  Even if it were not, many of the random sources
+ * could be manipulated by an attacker (for example, create dynamic areas
+ * with specific names), though this doesn't give complete control over
+ * what data is added (DAs must have a size within physical memory,
+ * for example).  Here we assume that both these methods are secure, since
+ * we can find none more secure, and try to ensure that data they provide
+ * is faithfully added to the random pool.  So we try to prevent
+ * uninitialised data from the stack being added to the pool, since this
+ * could be altered in 'userspace' by an attacker,
+ * whilst the results of OS_ReadMonotonicTime
+ * are assumed to be unmodifiable.  As RISC OS stands this assumption
+ * is blatantly untrue, but if we don't assume some security we
+ * might as well go home now.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -152,7 +172,7 @@ static void noise_add_string(void (*add) (void *, int), char *string)
 }
 
 /* add in a directory listing of directory <dir>, or if <getRoot> set
- * use it's root
+ * use its root
  */
 static void noise_add_dir_list(void (*add) (void *, int), char *dir,bool getRoot)
 {
@@ -217,16 +237,17 @@ static void noise_add_dir_list(void (*add) (void *, int), char *dir,bool getRoot
 }
 
 /* noise_read_bmu_variable: _very_ silly function to prise lots of data
- * out of A4s battery manager.  This is silly because most A4s don't have
+ * out of A4's battery manager.  This is silly because most A4s don't have
  * a network, but never mind!
  */
 
 static uint32 noise_read_bmu_variable(uint32 variable)
 {
   uint32 value;
-  xportable_read_bmu_variable((portable_bmu_variable) variable,(int *) &value);
-
-  return value;
+  if (!xportable_read_bmu_variable((portable_bmu_variable) variable,(int *) &value))
+    return value;
+  else
+    return 0;
 }
 
 /* noise_get_heavy: do lots of silly things to attempt to get 'random' data
@@ -243,7 +264,13 @@ void noise_get_heavy(void (*add) (void *, int))
   uint32 osVersion=0;
   os_dynamic_area_no dynArea=-1;
   uint32 i=0;
+  int used=0, context=0;
+  os_var_type var_type=os_VARTYPE_STRING;
+
   SYSLOG_ENTRY("noise_get_heavy");
+
+  /* make sure we zero the buffer, to prevent stack manipulation attacks */
+  memset(buffer,'\0',sizeof(buffer));
 
   xosbyte1(osbyte_IN_KEY,0,0xff /* -256 */,(int *) &osVersion);
 
@@ -315,31 +342,43 @@ void noise_get_heavy(void (*add) (void *, int))
     while (dynArea!=(os_dynamic_area_no)-1);
   }
 
-  /* add in free space of disc containing Obey$Dir - this is the most likely
+  /* add in free space of disc containing Wimp$ScrapDir - this is the most likely
    * to be spinning (or use OS_Args 254 to get open files - but get devices
    * etc?)
    */
-  if (osVersion<RISC_OS_360)
+  /* does <Wimp$ScrapDir> exist? */
+
+xos_read_var_val_size("Wimp$ScrapDir",0,os_VARTYPE_STRING,&used,&context,&var_type);
+  /* if so, we assume that it is accessible */
+
+  if (used>0)
   {
-    xosfscontrol_free_space("<Obey$Dir>",
-                            (int *) &(buffer[0]),
-                            (int *) &(buffer[1]),
-                            (int *) &(buffer[2]));
-    add(buffer,sizeof(uint32)*3);
-  }
-  else
-  {
-    xosfscontrol_free_space64("<Obey$Dir>",
+  /* try to read the 64 bit free space of the drive on which it is on */
+    if (!xosfscontrol_free_space64("<Wimp$ScrapDir>",
                               (bits *) &(buffer[0]),
                               (int *) &(buffer[1]),
                               (int *) &(buffer[2]),
                               (bits *) &(buffer[3]),
-                              (bits *) &(buffer[4]));
-    add(buffer,sizeof(uint32)*5);
+                              (bits *) &(buffer[4])))
+    {
+      add(buffer,sizeof(uint32)*5);
+    }
+    else
+    {
+      /* FS doesn't support the 64 bit call, so try the 32 bit call */
+      if (!xosfscontrol_free_space("<Wimp$ScrapDir>",
+                              (int *) &(buffer[0]),
+                              (int *) &(buffer[1]),
+                              (int *) &(buffer[2])))
+      {
+        add(buffer,sizeof(uint32)*3);
+      }
+      /* if that didn't work, just give up */
+    }
+    noise_add_dir_list(add,"<Wimp$ScrapDir>",FALSE);
   }
 
-  noise_add_dir_list(add,"<Obey$Dir>",TRUE);
-  noise_add_dir_list(add,"<Wimp$ScrapDir>",FALSE);
+  /* add the list of files in <Wimp$ScrapDir> */
 
   noise_load_seed();
   SYSLOG_EXIT("noise_get_heavy");
@@ -350,6 +389,13 @@ void noise_get_light(void (*add) (void *, int))
   uint32 buffer[16];
   uint32 i=0;
   SYSLOG_ENTRY("noise_get_light");
+
+  /* we must zero the buffer otherwise if any of the calls below
+   * fail we're in danger of adding the contents of the stack to the
+   * random pool, which might facilitate attempts to control the
+   * random state
+   */
+  memset(buffer,'\0',sizeof(buffer));
 
   /* add in the OS interval timer and RTC */
 
@@ -363,9 +409,18 @@ void noise_get_light(void (*add) (void *, int))
   /* add in the battery status */
   for (i=0; i<12; i++)
   {
+    /* noise_read_bmu_variable returns 0 if the battery status cannot
+     * be read.  This ensures that we don't try to add anything
+     * left on the stack to the random pool
+     */
     buffer[4+i]=noise_read_bmu_variable(i);
   }
 
+  /* if the BMU variables aren't valid (common since we're unlikely to
+   * be on an A4), we're only supplying 4 bytes of data here, not 16.
+   * we add it all anyway, but the entropy contribution from the
+   * unset (zero) bytes is zero.
+   */
   add(buffer,sizeof(uint32)*16);
 
   SYSLOG_EXIT("noise_get_light");
@@ -373,11 +428,16 @@ void noise_get_light(void (*add) (void *, int))
 
 void noise_get_ultralight(void (*add) (void *, int),void *data,uint32 size)
 {
-  uint32 time;
+  uint32 time=0;
   uint32 buffer[4];
   oswordpointer_position_block ptrPos;
 
   add(data,size);
+  /* we should zero this buffer to prevent stack manipulation attacks,
+   * but the code below will only add its contents if the calls to
+   * write to it have succeeded so this is unnecessary
+   */
+  //memset(buffer,'\0',sizeof(buffer));
 #if 0
   /* read the _buffered_ mouse position - this will lose entries from
    * the mouse queue on slow machines */
@@ -389,13 +449,15 @@ void noise_get_ultralight(void (*add) (void *, int),void *data,uint32 size)
 #else
   /* read unbuffered position */
   ptrPos.op = oswordpointer_OP_READ_POSITION;
-  xoswordpointer_read_position(&ptrPos);
-  buffer[0] = ptrPos.x | (ptrPos.y<<16);
-  add(buffer,sizeof(uint32));
+  if (!xoswordpointer_read_position(&ptrPos))
+  {
+    buffer[0] = ptrPos.x | (ptrPos.y<<16);
+    add(buffer,sizeof(uint32));
+  }
 #endif
 
-  xos_read_monotonic_time((int *) &time);
-  add(&time,sizeof(int));
+  if (!xos_read_monotonic_time((int *) &time))
+    add(&time,sizeof(int));
 
   /* read the microsecond (or faster) timer and add - only available
    * with RISC OS 5 or the HAL26 module loaded */
