@@ -1,0 +1,41 @@
+Security advisory for CryptRandom module
+
+Affected:             CryptRandom module
+Susceptible versions: 0.05 to 0.08 inclusive
+Fixed in:             0.09
+Download from:        http://www.markettos.org.uk/riscos/crypto/
+
+Stefan Bellon discovered a bug in CryptRandom, a module for generating
+cryptographically useful random numbers.  This module is used by, among
+others, GnuPG, SSHProxy and pscp - none of these, nor any other applications
+the author is aware of, are affected, but you are advised to upgrade this
+module in any case.  Version 0.09 can be downloaded from
+http://www.markettos.org.uk/ and new versions of SSHProxy and pscp have been
+issued containing it (see below for those).
+
+The bug concerns the CryptRandom_Block SWI, which is used to generate a block
+of random bytes.  In certain circumstances when requesting a block of random
+numbers, only the first part of the block is filled in.  This means that a)
+the data returned may become predictable and b) the preexisting data in the
+block is returned as random data.  Predictability may affect algorithms
+which rely on the unpredictability of the random data for their
+security, such as DSA encryption in SSH (this is not used by SSHProxy).
+The effects of the leak of data from memory depends on the use to which the
+caller puts it.  It may, for example, be exposed to the network or other
+applications.
+
+The bug may be triggered if more than 2 to 1200 bytes of randomness are
+requested - the exact threshold depends on the state of the randomness pool
+within CryptRandom.
+
+
+
+SSHProxy 0.18 and pscp 0.49b-07 contain the fixed module.  SSHProxy also
+contains memory leak fixes (thanks to Justin Fletcher) and sets the IP type
+of service flags for low delay transmission - this may help speed interactive
+data through congested networks.  Both are also available from
+http://www.markettos.org.uk/riscos/crypto/
+
+
+Theo Markettos (theo@markettos.org.uk)
+3 November 2002
