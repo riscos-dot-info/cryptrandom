@@ -3,7 +3,7 @@
 #ifndef SYSLOGIF_H
 #define SYSLOGIF_H
 
-#include "syslogDS.h"
+/*#include "syslogDS.h"*/
 
 #define syslog_irq_logmessage          syslog_logmessage
 #define syslog_irq_logunstamped        syslog_logunstamped

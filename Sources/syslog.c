@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "kernel.h"
+#include "oslib/syslog.h"
 
 #include "def.h"
 #include "macros.h"
@@ -21,13 +22,13 @@ _kernel_oserror *xsyslog_irq_logf(const char *logname, int priority,
   register int r;
   _kernel_oserror *result;
 
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
   va_start (ap, format);
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  result=xsyslog_logmessage(logname,buffer,priority);
-  xsyslog_irqmode(FALSE);
+  result=xsyslog_log_message(logname,buffer,priority);
+  xsyslog_irq_mode(FALSE);
 
   return result;
 }
@@ -39,13 +40,13 @@ void syslog_irq_logf(const char *logname, int priority,
   va_list ap;
   register int r;
 
-  syslog_irqmode(TRUE);
+  syslog_irq_mode(TRUE);
   va_start (ap, format);
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  syslog_logmessage(logname,buffer,priority);
-  syslog_irqmode(FALSE);
+  syslog_log_message(logname,buffer,priority);
+  syslog_irq_mode(FALSE);
 
 }
 
@@ -60,7 +61,7 @@ _kernel_oserror *xsyslog_logf(const char *logname, int priority,
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  result=xsyslog_logmessage(logname,buffer,priority);
+  result=xsyslog_log_message(logname,buffer,priority);
 
   return result;
 }
@@ -76,7 +77,7 @@ void syslog_logf(const char *logname, int priority,
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  syslog_logmessage(logname,buffer,priority);
+  syslog_log_message(logname,buffer,priority);
 }
 
 OSERROR *xsyslog_irq_report(OSERROR *err,char *file,int line)

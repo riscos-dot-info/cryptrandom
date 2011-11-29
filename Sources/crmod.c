@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "os.h"
+#include "oslib/os.h"
 
 #include "vartypes.h"
 #include "macros.h"
@@ -26,7 +26,7 @@ OSERROR *module_swi(int swiNumber, _kernel_swi_regs *r, void *privateWord)
   UNUSED(privateWord);
   UNUSED(swiNumber);
   UNUSED(r);
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
 
   switch(swiNumber)
   {
@@ -63,7 +63,7 @@ OSERROR *module_swi(int swiNumber, _kernel_swi_regs *r, void *privateWord)
       break;
   }
 
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
   return result;
 }
 
@@ -73,11 +73,11 @@ OSERROR *module_cmd(char *argString, int argc, int commandNumber, void *privateW
   UNUSED(argString);
   UNUSED(argc);
   UNUSED(commandNumber);
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
 
   version_printlicence();
 
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
   return 0;
 }
 
@@ -89,21 +89,21 @@ void module_service(int serviceNumber, _kernel_swi_regs *r, void *privateWord)
 
   /* Only interested in Service_ShutDown */
 
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
   noise_save_seed();
 
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
 }
 
 void module_finalise(void)
 {
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
 
   xsyslog_irq_logf(SYSLOG_FILE,LOG_INIT,"Killing CryptRandom...\n");
   event_finalise(module_globalPrivateWord);
 
   noise_save_seed();
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
 }
 
 OSERROR *module_initialise(char *commandTail, int poduleBase, void *privateWord)
@@ -113,7 +113,7 @@ OSERROR *module_initialise(char *commandTail, int poduleBase, void *privateWord)
   UNUSED(commandTail);
   UNUSED(poduleBase);
   UNUSED(privateWord);
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
 
   module_globalPrivateWord=privateWord;
 
@@ -126,7 +126,7 @@ OSERROR *module_initialise(char *commandTail, int poduleBase, void *privateWord)
   if (result)
   {
     xsyslog_irq_logf(SYSLOG_FILE,LOG_ERROR,"Error in event_initialise: %x, %d, %s\n",result,result->errnum,result->errmess);
-    xsyslog_irqmode(FALSE);
+    xsyslog_irq_mode(FALSE);
     exit(1);
   }
 
@@ -135,7 +135,7 @@ OSERROR *module_initialise(char *commandTail, int poduleBase, void *privateWord)
    * something that hasn't been initialised
    */
   atexit(module_finalise);
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
 
   return 0;
 }

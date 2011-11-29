@@ -1,6 +1,6 @@
 #include "kernel.h"
-#include "os.h"
-#include "osbyte.h"
+#include "oslib/os.h"
+#include "oslib/osbyte.h"
 
 #include "def.h"
 #include "vartypes.h"
@@ -22,7 +22,7 @@ int event_eventv_handler(_kernel_swi_regs *r, void *pw)
   if (r->r[0]!=Event_KeyTransition)
     return 1; /* asap */
 
-  xsyslog_irqmode(TRUE);
+  xsyslog_irq_mode(TRUE);
 
   /*buffer[0]=r->r[1]; - key up/down is usually a set sequence - not random */
   buffer[0]=r->r[2];
@@ -30,7 +30,7 @@ int event_eventv_handler(_kernel_swi_regs *r, void *pw)
   xsyslog_irq_logf(SYSLOG_FILE,LOG_DEBUG_VERYLOW,"noise %d\n",buffer[0]);
   noise_get_ultralight(random_add_noise,buffer,sizeof(buffer));
 
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
   return 1;
 }
 
@@ -46,7 +46,7 @@ int event_mousev_handler(_kernel_swi_regs *r, void *pw)
       if (button==r->r[2])
         if (buttonTime==r->r[3])
         {
-          xsyslog_irqmode(FALSE);
+          xsyslog_irq_mode(FALSE);
           return 1;
         }
 
@@ -60,7 +60,7 @@ int event_mousev_handler(_kernel_swi_regs *r, void *pw)
    */
   noise_get_ultralight(random_add_noise,&(r->r[0]),16);
   xsyslog_irq_logf(SYSLOG_FILE,LOG_DEBUG_VERYLOW,"noise %d,%d,%d,%d\n",r->r[0],r->r[1],r->r[2],r->r[3]);
-  xsyslog_irqmode(FALSE);
+  xsyslog_irq_mode(FALSE);
 
   return 1;
 }
