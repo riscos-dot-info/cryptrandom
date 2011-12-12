@@ -1,4 +1,4 @@
-TARGET  := CryptRand
+TARGET  := CryptRand,ffa
 SRCS    := crmod.c error.c event.c noise.c randputty.c sha.c syslog.c version.c shaputty.c
 OBJS	:= ${SRCS:.c=.o}
 DEPS    := ${SRCS:.c=.dep} 
