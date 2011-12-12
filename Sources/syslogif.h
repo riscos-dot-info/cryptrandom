@@ -7,7 +7,7 @@
 
 #define syslog_irq_logmessage          syslog_logmessage
 #define syslog_irq_logunstamped        syslog_logunstamped
-#define syslog_irq_logdata             syslog_logdata
+#define syslog_irq_logdata             syslog_log_data
 #define syslog_irq_logformatted        syslog_logformatted
 #define syslog_irq_irqmode             syslog_irqmode
 #define syslog_irq_getloglevel         syslog_getloglevel
@@ -18,7 +18,7 @@
 
 #define xsyslog_irq_logmessage          xsyslog_logmessage
 #define xsyslog_irq_logunstamped        xsyslog_logunstamped
-#define xsyslog_irq_logdata             xsyslog_logdata
+#define xsyslog_irq_logdata             xsyslog_log_data
 #define xsyslog_irq_logformatted        xsyslog_logformatted
 #define xsyslog_irq_irqmode             xsyslog_irqmode
 #define xsyslog_irq_getloglevel         xsyslog_getloglevel

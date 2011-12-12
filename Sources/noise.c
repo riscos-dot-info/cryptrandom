@@ -39,6 +39,7 @@
 #include "oslib/fileswitch.h"
 #include "oslib/osword.h"
 #include "oslib/hal.h"
+#include "oslib/syslog.h"
 
 #include "def.h"
 #include "vartypes.h"
@@ -102,7 +103,7 @@ static OSERROR *noise_load_seed(void)
     do
     {
       result=(OSERROR *) xosgbpb_read(fh,buffer,1024,(int *) &unread);
-      xsyslog_logdata(SYSLOG_FILE,LOG_DEBUG_VERYLOW,buffer,1024-unread,0);
+      xsyslog_log_data(SYSLOG_FILE,LOG_DEBUG_VERYLOW,buffer,1024-unread,0);
       random_add_noise(buffer,1024-unread);
       xosargs_read_eof_status(fh,&eof);
     }
@@ -324,7 +325,7 @@ void noise_get_heavy(void (*add) (void *, int))
                             (byte **) &(buffer[1]),  /* base address */
                             (bits *)  &(buffer[2]),  /* flags */
                             (int *)   &(buffer[3]),  /* max size */
-                            (void **) &(buffer[4]),  /* handler */
+                            (asm_routine *) &(buffer[4]),  /* handler */
                             (void **) &(buffer[5]),  /* handler ws */
                             (char **) &(buffer[6])); /* name */
         if (result)
