@@ -1,5 +1,7 @@
 History
 -------
+0.13 ( 1 Jun 2012) Rebuild for ARMv7 compatibility (BeagleBoard etc).  Port build
+                   environment to GCCSDK/RiscPkg
 0.12 (21 Oct 2003) Based on suggestions from Justin Fletcher:
                    Rebuilt with StubsG.  Now doesn't scan <Obey$Dir> on initialisation.
                    Revised free space scan of <Wimp$ScrapDir> instead of <Obey$Dir>:
