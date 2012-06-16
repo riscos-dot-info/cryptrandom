@@ -4,10 +4,10 @@ OBJS	:= ${SRCS:.c=.o}
 DEPS    := ${SRCS:.c=.dep} 
 XDEPS   := $(wildcard ${DEPS}) 
 
-CCFLAGS = -O2 -Wall -mlibscl -mmodule -mhard-float
+CCFLAGS = -O2 -Wall -mlibscl -mmodule
 #-Werror 
 CMHGFLAGS = -tgcc -apcs 3/32/fpe3
-LDFLAGS = -mlibscl -mmodule -mhard-float
+LDFLAGS = -mlibscl -mmodule
 LIBS    = -lOSLib32
 
 CC	=	gcc
