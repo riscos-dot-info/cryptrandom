@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "oslib/os.h"
 #include "oslib/osbyte.h"
+#include "oslib/syslog.h"
 
 #include "def.h"
 #include "vartypes.h"

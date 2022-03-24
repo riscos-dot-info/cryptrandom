@@ -1,7 +1,9 @@
-
-help-string:  CryptRandom 0.13 © Theo Markettos theo@markettos.org.uk
+#include "../VersionNum"
 
 title-string: CryptRandom
+help-string:  CryptRandom Module_MajorVersion_CMHG © Theo Markettos theo@markettos.org.uk
+
+date-string:            Module_Date_CMHG
 
 initialisation-code: module_initialise
 

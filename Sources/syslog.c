@@ -27,7 +27,7 @@ _kernel_oserror *xsyslog_irq_logf(const char *logname, int priority,
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  result=xsyslog_log_message(logname,buffer,priority);
+  result=(_kernel_oserror *)xsyslog_log_message(logname,buffer,priority);
   xsyslog_irq_mode(FALSE);
 
   return result;
@@ -61,7 +61,7 @@ _kernel_oserror *xsyslog_logf(const char *logname, int priority,
   r = vsprintf (buffer, format, ap);
   va_end (ap);
 
-  result=xsyslog_log_message(logname,buffer,priority);
+  result=(_kernel_oserror *)xsyslog_log_message(logname,buffer,priority);
 
   return result;
 }

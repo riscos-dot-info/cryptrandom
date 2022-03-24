@@ -48,6 +48,7 @@
 #include "error.h"
 #include "syslogif.h"
 #include "randputty.h"
+#include "crmod.h"
 
 /* values from INKEY(-256) */
 #define RISC_OS_350 0xA5
@@ -292,17 +293,19 @@ void noise_get_heavy(void (*add) (void *, int))
   tmContext=0;
   do
   {
-    xtaskmanager_enumerate_tasks(tmContext,
+    if (xtaskmanager_enumerate_tasks(tmContext,
                                  (taskmanager_task *) buffer,
                                  sizeof(buffer),
                                  &tmContext,
-                                 (char **) &bufferEnd);
+                                 (char **) &bufferEnd)) break;
+
     /* add the info block in */
     add(buffer,bufferEnd-buffer);
 
     /* add their names in */
     for (i=0; i<((bufferEnd-buffer)/4); i++)
       noise_add_string(add,(char *) (buffer[(i*4)+1]));
+
   }
   while (tmContext>=0);
 
@@ -325,7 +328,7 @@ void noise_get_heavy(void (*add) (void *, int))
                             (byte **) &(buffer[1]),  /* base address */
                             (bits *)  &(buffer[2]),  /* flags */
                             (int *)   &(buffer[3]),  /* max size */
-                            (asm_routine *) &(buffer[4]),  /* handler */
+                            (void **) &(buffer[4]),  /* handler */
                             (void **) &(buffer[5]),  /* handler ws */
                             (char **) &(buffer[6])); /* name */
         if (result)
@@ -408,13 +411,17 @@ void noise_get_light(void (*add) (void *, int))
   xoswordreadclock_utc((oswordreadclock_utc_block *) &(buffer[2]));
 
   /* add in the battery status */
-  for (i=0; i<12; i++)
-  {
-    /* noise_read_bmu_variable returns 0 if the battery status cannot
-     * be read.  This ensures that we don't try to add anything
-     * left on the stack to the random pool
-     */
-    buffer[4+i]=noise_read_bmu_variable(i);
+  if (bmu_available) {
+    for (i=0; i<12; i++)
+    {
+      /* noise_read_bmu_variable returns 0 if the battery status cannot
+       * be read.  This ensures that we don't try to add anything
+       * left on the stack to the random pool
+       */
+      buffer[4+i]=noise_read_bmu_variable(i);
+    }
+  } else {
+    for (i=0; i<12; i++) buffer[4+i]=0;
   }
 
   /* if the BMU variables aren't valid (common since we're unlikely to
