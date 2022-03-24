@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "oslib/os.h"
+#include "oslib/syslog.h"
+#include "oslib/portable.h"
 
 #include "vartypes.h"
 #include "macros.h"
@@ -17,8 +19,10 @@
 #include "error.h"
 #include "sha.h"
 #include "version.h"
+#include "crmod.h"
 
 static void *module_globalPrivateWord=NULL;
+int bmu_available=0;
 
 OSERROR *module_swi(int swiNumber, _kernel_swi_regs *r, void *privateWord)
 {
@@ -118,6 +122,13 @@ OSERROR *module_initialise(char *commandTail, int poduleBase, void *privateWord)
   module_globalPrivateWord=privateWord;
 
   xsyslog_irq_logf(SYSLOG_FILE,LOG_INIT,"Starting CryptRandom...\n");
+
+  /* determine if we have a BMU or not
+   * if we don't, then there's no point in trying to use it as a noise source
+   * indeed, if we are making noise then generating 12x errors via Portable will overwrite all
+   * messagetrans buffers and potentially mask a genuine one */
+
+  bmu_available = (xportable_read_bmu_variable(0, NULL) == NULL);
 
   random_init();
 
